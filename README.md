@@ -1,5 +1,5 @@
 
-# 🧪 How to Use
+# 🧪 How to Run the Pipeline on MacOS
 
 Open Bash >> Run 
 
@@ -10,6 +10,33 @@ import slicer_stl_config as config
 exec(open('/Users/phd/Documents/slicer-stl-export/slicer_stl_export.py').read())
 main()
 "
+
+It will run slicer_stl_export.py using the parameters from slicer_stl_config.py.
+
+# 🧪 How to Run the Pipeline on Windows
+
+1. **Verify where 3D Slicer is installed**
+
+C:\Program Files\Slicer 5.4.0\Slicer.exe
+
+If you're unsure:
+- Search for “Slicer” in the Start Menu
+- Right-click on the shortcut → "Open file location"
+- Copy the full path to `Slicer.exe`
+
+2. **Locate your project folder**, for example:
+
+
+3. **Open Command Prompt (CMD)**:
+- Press `Win + R`, type `cmd`, and press **Enter**
+
+4. **Run the following command** (adjust the paths if needed):
+
+Open cmd >> Run 
+"C:\Program Files\Slicer 5.4.0\Slicer.exe" --no-main-window --python-code 
+"import sys; sys.path.append('C:/Users/phd/Documents/slicer-stl-export'); 
+import slicer_stl_config as config; exec(open('C:/Users/phd/Documents/slicer-stl-export/slicer_stl_export.py').read()); 
+main()"
 
 It will run slicer_stl_export.py using the parameters from slicer_stl_config.py.
 
