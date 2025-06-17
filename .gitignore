@@ -1,3 +1,7 @@
 *.pyc
 __pycache__/
+*.vtk
+*.stl
+.vscode
 .slicer
+.DS_Store
