@@ -1,6 +1,6 @@
 
 # === slicer_stl_export.py ===
-
+import slicerutil
 from DICOMLib import DICOMUtils
 import pydicom
 import os
@@ -79,6 +79,35 @@ def fill_segmentation_from_volume(segmentation_node, segment_id, volume_node, th
 
     editorWidget = None  # cleanup
 
+def keep_largest_island_in_segment(segmentationNode, segmentID, volumeNode=None):
+    """
+    Applies the 'Islands' effect in Segment Editor to keep the largest island in a segment.
+
+    Parameters:
+        segmentationNode (vtkMRMLSegmentationNode): the node containing the segment
+        segmentID (str): ID of the segment to process (not the name)
+        volumeNode (vtkMRMLScalarVolumeNode, optional): source volume, needed if using intensity-based effects
+    """
+    # Create and configure Segment Editor
+    editorWidget = slicer.qMRMLSegmentEditorWidget()
+    editorWidget.setMRMLScene(slicer.mrmlScene)
+    
+    editorNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentEditorNode")
+    editorWidget.setSegmentEditorNode(editorNode)
+    editorWidget.setSegmentationNode(segmentationNode)
+    if volumeNode:
+        editorWidget.setSourceVolumeNode(volumeNode)
+
+    # Apply Islands effect
+    editorWidget.setActiveSegmentID(segmentID)
+    editorWidget.setActiveEffectByName("Islands")
+    effect = editorWidget.activeEffect()
+    effect.setParameter("Operation", "KEEP_LARGEST_ISLAND")
+    effect.setParameter("MinimumSize", "0")  # Optional
+    effect.self().apply()
+
+    print(f"✅ Largest island kept in segment: {segmentID}")
+
 def export_segment_to_stl(segmentation_node, segment_id, output_folder, format="STL", coordsys="RAS"):
     ids = vtk.vtkStringArray()
     ids.InsertNextValue(segment_id)
@@ -92,7 +121,7 @@ def export_segment_to_stl(segmentation_node, segment_id, output_folder, format="
     )
     print(f"✅ Exported segment '{segment_id}' to {output_folder}")
 
-def main():
+def main_old():
     input_volume = import_dicom_series(DICOM_FOLDER, SERIES_DESCRIPTION)
     if not input_volume:
         print("❌ Volume not found.")
@@ -114,10 +143,93 @@ def main():
     # Fill it using threshold
     fill_segmentation_from_volume(segmentation_node, SEGMENT_ID, vesselness_volume)
 
-    slicer.app.processEvents()
-    slicer.util.forceRenderAllViews()
-
     segmentation_node.CreateClosedSurfaceRepresentation()
     export_segment_to_stl(segmentation_node, SEGMENT_ID, OUTPUT_FOLDER, EXPORT_FORMAT, COORDINATE_SYSTEM)
 
+def export_segmentation_and_volume_as_nifti(segmentation_node, volume_node, image_path, label_path):
+    
+
+    # Export segmentation to labelmap
+    labelmap_node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLabelMapVolumeNode", "LabelmapFromSegmentation")
+    slicer.modules.segmentations.logic().ExportVisibleSegmentsToLabelmapNode(segmentation_node, labelmap_node, volume_node)
+
+    # Save the volume image
+    slicer.util.saveNode(volume_node, image_path)
+
+    # Save the label map (segmentation)
+    slicer.util.saveNode(labelmap_node, label_path)
+
+    print(f"✅ Saved image to: {image_path}")
+    print(f"✅ Saved labelmap to: {label_path}")
+
+
+def main():
+    input_volume = import_dicom_series(DICOM_FOLDER, SERIES_DESCRIPTION)
+    if not input_volume:
+        print("❌ Volume not found.")
+        return
+
+    seed_fiducial = create_seed_fiducial(SEED_POINT_RAS)
+    vesselness_volume = apply_vesselness_filter(input_volume, seed_fiducial, OUTPUT_VOLUME_NAME)
+
+    try:
+        segmentation_node = slicer.util.getNode(SEGMENTATION_NAME)
+        print(f"✅ Found existing segmentation node: {SEGMENTATION_NAME}")
+    except slicer.util.MRMLNodeNotFoundException:
+        print(f"⚠️ Segmentation node '{SEGMENTATION_NAME}' not found. Creating...")
+        segmentation_node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode", SEGMENTATION_NAME)
+        segmentation_node.GetSegmentation().AddEmptySegment(SEGMENT_ID)
+        segmentation_node.SetReferenceImageGeometryParameterFromVolumeNode(vesselness_volume)
+        segmentation_node.CreateDefaultDisplayNodes()
+
+    # Step 1: Fill segmentation from vesselness output
+    fill_segmentation_from_volume(segmentation_node, SEGMENT_ID, vesselness_volume)
+
+    # ✅ Step 2: Keep only the largest island
+    keep_largest_island_in_segment(segmentation_node, SEGMENT_ID, vesselness_volume)
+
+    # Step 3: Create surface and export
+    segmentation_node.CreateClosedSurfaceRepresentation()
+    export_segment_to_stl(segmentation_node, SEGMENT_ID, OUTPUT_FOLDER, EXPORT_FORMAT, COORDINATE_SYSTEM)
+
+def main():
+    input_volume = import_dicom_series(DICOM_FOLDER, SERIES_DESCRIPTION)
+    if not input_volume:
+        print("❌ Volume not found.")
+        return
+
+    seed_fiducial = create_seed_fiducial(SEED_POINT_RAS)
+    vesselness_volume = apply_vesselness_filter(input_volume, seed_fiducial, OUTPUT_VOLUME_NAME)
+
+    try:
+        segmentation_node = slicer.util.getNode(SEGMENTATION_NAME)
+        print(f"✅ Found existing segmentation node: {SEGMENTATION_NAME}")
+    except slicer.util.MRMLNodeNotFoundException:
+        print(f"⚠️ Segmentation node '{SEGMENTATION_NAME}' not found. Creating...")
+        segmentation_node = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode", SEGMENTATION_NAME)
+        segmentation_node.GetSegmentation().AddEmptySegment(SEGMENT_ID)
+        segmentation_node.SetReferenceImageGeometryParameterFromVolumeNode(vesselness_volume)
+        segmentation_node.CreateDefaultDisplayNodes()
+
+    # Step 1: Fill segmentation from vesselness output
+    fill_segmentation_from_volume(segmentation_node, SEGMENT_ID, vesselness_volume)
+
+    # Step 2: Keep only the largest island
+    keep_largest_island_in_segment(segmentation_node, SEGMENT_ID, vesselness_volume)
+
+    # Step 3: Create surface and export
+    segmentation_node.CreateClosedSurfaceRepresentation()
+    
+    export_segment_to_stl(segmentation_node, SEGMENT_ID, OUTPUT_FOLDER, EXPORT_FORMAT, COORDINATE_SYSTEM)
+
+    # Export segmentation + image to .nii.gz files
+    export_segmentation_and_volume_as_nifti(
+        segmentation_node,
+        vesselness_volume,
+        os.path.join(OUTPUT_FOLDER, "circle_image.nii.gz"),
+        os.path.join(OUTPUT_FOLDER, "circle_segmentation.nii.gz")
+    )
+    
 main()
+
+
