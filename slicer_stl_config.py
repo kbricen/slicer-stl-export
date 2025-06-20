@@ -27,3 +27,10 @@ EXPORT_FORMAT = "STL"
 
 # Coordinate system: either "RAS" or "LPS"
 COORDINATE_SYSTEM = "RAS"
+
+# === Islands to Keep ===
+# Provide IJK voxel coordinates (integer triplets) that fall inside the islands you want to retain
+SELECTED_VOXELS_TO_KEEP = [
+    [282, 220, 40],  # Example voxel from your screenshot
+    # Add more if needed: [i, j, k]
+]

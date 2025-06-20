@@ -3,13 +3,11 @@
 
 Open Bash >> Run 
 
-/Applications/Slicer.app/Contents/MacOS/Slicer --no-main-window --python-code "
-import sys
+/Applications/Slicer.app/Contents/MacOS/Slicer --python-code "import sys
 sys.path.append('/Users/phd/Documents/slicer-stl-export')
 import slicer_stl_config as config
 exec(open('/Users/phd/Documents/slicer-stl-export/slicer_stl_export.py').read())
-main()
-"
+main()"
 
 It will run slicer_stl_export.py using the parameters from slicer_stl_config.py.
 
