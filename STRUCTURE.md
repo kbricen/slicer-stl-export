@@ -174,9 +174,10 @@ Standalone script for extracting radiomics features from segmented vessels.
 | `numpy` | 2.0.2 | Numerical operations |
 | `PyWavelets` | 1.6.0 | Wavelet transforms for texture analysis |
 | `ruamel.yaml` | 0.18.14 | YAML configuration parsing |
+| `ruamel.yaml.clib` | 0.2.12 | C-based speedups for ruamel.yaml |
 | `docopt` | 0.6.2 | Command-line argument parsing |
 | `pykwalify` | 1.8.0 | Schema validation |
-| `python-dateutil` | 2.9.0 | Date/time utilities |
+| `python-dateutil` | 2.9.0.post0 | Date/time utilities |
 | `six` | 1.17.0 | Python 2/3 compatibility |
 
 ### External Dependencies
