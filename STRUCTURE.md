@@ -170,7 +170,7 @@ Standalone script for extracting radiomics features from segmented vessels.
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `simpleitk` | 2.5.2 | Medical image I/O and processing |
-| `pyradiomics` | (local) | Radiomics feature extraction |
+| `pyradiomics` | (local install) | Radiomics feature extraction - installed from local source |
 | `numpy` | 2.0.2 | Numerical operations |
 | `PyWavelets` | 1.6.0 | Wavelet transforms for texture analysis |
 | `ruamel.yaml` | 0.18.14 | YAML configuration parsing |
@@ -283,9 +283,11 @@ The pipeline handles conversions between these systems transparently.
 
 ---
 
-## 📝 License
+## 📝 License & Attribution
 
-DFG 1294 "Data Assimilation"
+This project is associated with DFG 1294 "Data Assimilation". 
+
+For specific licensing terms, please refer to the repository or contact the project maintainers.
 
 ---
 
